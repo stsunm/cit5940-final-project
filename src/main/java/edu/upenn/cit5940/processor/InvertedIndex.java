@@ -41,7 +41,7 @@ public class InvertedIndex {
     }
 
     // DO NOT CHANGE THE FOLLOWING SET OF STOP_WORDS
-    private static final Set<String> STOP_WORDS = Set.of(
+    static final Set<String> STOP_WORDS = Set.of(
             "i", "me", "my" , "myself" , "we" , "our" , "ours" , "ourselves" , "you" , "your" ,
             "yours" , "yourself" , "yourselves" , "he" , "him" , "his" , "himself" , "she" ,
             "her" , "hers" , "herself" , "it" , "its" , "itself" , "they" , "them" , "their" ,
