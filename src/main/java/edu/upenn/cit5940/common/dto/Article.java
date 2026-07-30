@@ -30,6 +30,17 @@ public class Article {
             throw new IllegalArgumentException("URI cannot be null or empty.");
         }
     }
+    
+    public Article(String uri, String date, String title, String body) {
+        this.uri = uri;
+        this.date = date;
+        this.title = title;
+        this.body = body;
+        
+        if (uri == null || uri.isBlank()) {
+            throw new IllegalArgumentException("URI cannot be null or empty.");
+        }
+    }
 
     /*
     Getters and setters

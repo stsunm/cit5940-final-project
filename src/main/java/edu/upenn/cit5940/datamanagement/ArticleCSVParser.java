@@ -18,7 +18,7 @@ import java.util.*;
 
 import edu.upenn.cit5940.common.dto.Article;
 
-public class ArticleCSVParser {
+public class ArticleCSVParser implements DataParser {
     private final CharacterReader reader;
     private int iLine = 1;
     private int iRecord = 1;
@@ -37,7 +37,8 @@ public class ArticleCSVParser {
     /**
      * Reads the entire CSV stream and parses it into a map of Articles.
      */
-    public Map<String, Article> readAllArticles() throws IOException, CSVFormatException {
+    @Override
+	public Map<String, Article> readAllArticles() throws IOException, CSVFormatException {
         Map<String, Article> articles = new HashMap<>(); //Initialize the map to hold the parsed articles
         List<String> currentRecord = new ArrayList<>(); //Initialize the list to hold the current ariticle being parsed
         StringBuilder currentField = new StringBuilder(); //Initialize the StringBuilder to hold the current field being parsed
