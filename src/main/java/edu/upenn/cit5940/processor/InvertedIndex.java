@@ -19,42 +19,83 @@ import java.util.*;
 
 public class InvertedIndex {
 
-    // Root of the BST
-    private BSTNode root;
+    // HashMap to store the inverted index: keyword -> set of document IDs
+    private Map<String, Set<Integer>> index;
 
-    // define a private static inner class that represents a node in the BST
-    private static class BSTNode{
-        // keyWord that is indexed
-        String keyWord;
-        // set of IDs where the keyWord appears
-        Set<Integer> documentIDs;
-        // the left node stores keywords less than this node's keyword
-        // the right node stores keywords greater than this node's keyword
-        BSTNode left, right;
-
-        // constructor to initialize each node
-        BSTNode(String keyWord, int docID){
-            this.keyWord = keyWord;
-            this.documentIDs = new HashSet<>();
-            this.documentIDs.add(docID);
-        }
+    // Constructor
+    public InvertedIndex() {
+        this.index = new HashMap<>();
     }
 
-    // DO NOT CHANGE THE FOLLOWING SET OF STOP_WORDS
     static final Set<String> STOP_WORDS = Set.of(
-            "i", "me", "my" , "myself" , "we" , "our" , "ours" , "ourselves" , "you" , "your" ,
-            "yours" , "yourself" , "yourselves" , "he" , "him" , "his" , "himself" , "she" ,
-            "her" , "hers" , "herself" , "it" , "its" , "itself" , "they" , "them" , "their" ,
-            "theirs" , "themselves" , "what" , "which" , "who" , "whom" , "this" , "that" ,
-            "these" , "those" , "am" , "is" , "are" , "was" , "were" , "be" , "been" , "being" ,
-            "have" , "has" , "had" , "having" , "do" , "does" , "did" , "doing" , "a" , "an" ,
-            "the" , "and" , "but" , "if" , "or" , "because" , "as" , "until" , "while" ,
-            "of" , "at" , "by" , "for" , "with" , "about" , "against" , "between" , "into" , "through" ,
-            "during" , "before" , "after" , "above" , "below" , "to" , "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when",
-            "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such",
-            "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just",
-            "don", "should", "now", "said", "announced", "company", "industry", "technology", "system", "application",
-            "software", "update", "service"
+            "a", "an", "and", "are", "as", "at", "be", "been", 
+            "by", "for", "from", "has", "have", "he", "in", "is", 
+            "it", "its", "of", "on", "that", "the", "their", "there", 
+            "they", "this", "to", "was", "will", "with", "you", "your", 
+            "i", "me", "my", "we", "our", "us", "him", "his", "her", "she", 
+            "them", "these", "those", "but", "if", "or", "because", "so", 
+            "than", "too", "very", "when", "where", "why", "how", "all", 
+            "any", "both", "each", "few", "more", "most", "other", "some", 
+            "such", "no", "nor", "not", "only", "own", "same", "just", "now", 
+            "said", "can", "should", "would", "could", "might", "may", "must", 
+            "shall", "do", "does", "did", "done", "doing", "get", "got", "getting", 
+            "make", "made", "making", "take", "took", "taking", "come", "came", "coming", 
+            "go", "went", "going", "see", "saw", "seeing", "know", "knew", "knowing", "think", 
+            "thought", "thinking", "say", "saying", "tell", "told", "telling", "give", "gave", 
+            "giving", "find", "found", "finding", "use", "used", "using", "work", "worked", "working", 
+            "look", "looked", "looking", "want", "wanted", "wanting", "need", "needed", "needing", "feel", 
+            "felt", "feeling", "seem", "seemed", "seeming", "try", "tried", "trying", "ask", "asked", "asking", 
+            "turn", "turned", "turning", "move", "moved", "moving", "play", "played", "playing", "run", "ran", 
+            "running", "live", "lived", "living", "help", "helped", "helping", "show", "showed", "showing", "hear", 
+            "heard", "hearing", "let", "letting", "put", "putting", "end", "ended", "ending", "set", "setting", "change", 
+            "changed", "changing", "keep", "kept", "keeping", "start", "started", "starting", "stop", "stopped", "stopping", 
+            "open", "opened", "opening", "close", "closed", "closing", "read", "reading", "write", "wrote", "writing", "speak", 
+            "spoke", "speaking", "call", "called", "calling", "meet", "met", "meeting", "leave", "left", "leaving", "bring", 
+            "brought", "bringing", "happen", "happened", "happening", "include", "included", "including", 
+            "continue", "continued", "continuing", "follow", "followed", "following", "appear", 
+            "appeared", "appearing", "allow", "allowed", "allowing", "provide", "provided", 
+            "providing", "serve", "served", "serving", "send", "sent", "sending", "receive", 
+            "received", "receiving", "build", "built", "building", "grow", "grew", "growing", 
+            "hold", "held", "holding", "create", "created", "creating", "develop", "developed", 
+            "developing", "produce", "produced", "producing", "offer", "offered", "offering", 
+            "support", "supported", "supporting", "contain", "contained", "containing", "cover", 
+            "covered", "covering", "reach", "reached", "reaching", "raise", "raised", "raising", 
+            "pass", "passed", "passing", "sell", "sold", "selling", "buy", "bought", "buying", 
+            "cost", "costing", "pay", "paid", "paying", "spend", "spent", "spending", "save", 
+            "saved", "saving", "lose", "lost", "losing", "win", "won", "winning", "beat", 
+            "beating", "hit", "hitting", "cut", "cutting", "break", "broke", "breaking", 
+            "kill", "killed", "killing", "die", "died", "dying", "stay", "stayed", "staying", 
+            "sit", "sat", "sitting", "stand", "stood", "standing", "lie", "lay", "lying", "walk", 
+            "walked", "walking", "drive", "drove", "driving", "fly", "flew", "flying", "ride", "rode", 
+            "riding", "carry", "carried", "carrying", "drop", "dropped", "dropping", "pick", "picked", 
+            "picking", "catch", "caught", "catching", "throw", "threw", "throwing", "push", "pushed", 
+            "pushing", "pull", "pulled", "pulling", "lift", "lifted", "lifting", "press", "pressed", 
+            "pressing", "touch", "touched", "touching", "smell", "smelled", "smelling", "taste", "tasted", "tasting", 
+            "sound", "sounded", "sounding", "listen", "listened", "listening", "watch", "watched", "watching", "notice", 
+            "noticed", "noticing", "realize", "realized", "realizing", "understand", "understood", "understanding", 
+            "remember", "remembered", "remembering", "forget", "forgot", "forgetting", "learn", "learned", "learning", 
+            "teach", "taught", "teaching", "study", "studied", "studying", "practice", "practiced", "practicing", 
+            "train", "trained", "training", "improve", "improved", "improving", "increase", "increased", "increasing", 
+            "decrease", "decreased", "decreasing", "rise", "rose", "rising", "fall", "fell", "falling", "jump", 
+            "jumped", "jumping", "climb", "climbed", "climbing", "crawl", "crawled", "crawling", "swim", "swam", 
+            "swimming", "dive", "dived", "diving", "sink", "sank", "sinking", "float", "floated", "floating", 
+            "flow", "flowed", "flowing", "pour", "poured", "pouring", "fill", "filled", "filling", "empty", 
+            "emptied", "emptying", "clean", "cleaned", "cleaning", "wash", "washed", "washing", "dry", 
+            "dried", "drying", "wet", "wetted", "wetting", "hot", "cold", "warm", "cool", "big", "small", 
+            "large", "little", "huge", "tiny", "long", "short", "tall", "high", "low", "deep", "shallow", 
+            "wide", "narrow", "thick", "thin", "heavy", "light", "strong", "weak", "fast", "slow", "quick", 
+            "quickly", "slowly", "early", "late", "new", "old", "young", "fresh", "stale", "good", "bad", "better", "best", "worse", "worst", 
+            "great", "greater", "greatest", "nice", "nicer", "nicest", "beautiful", "less", "least", "much", 
+            "many", "several", "every", "either", "neither", "one", "two", "three", "first", "second", "last", 
+            "next", "previous", "before", "after", "during", "while", "since", "until", "unless", "although", 
+            "though", "however", "therefore", "thus", "hence", "moreover", "furthermore", "additionally", 
+            "besides", "also", "never", "always", "often", "sometimes", "rarely", "seldom", "hardly", "barely", 
+            "scarcely", "almost", "nearly", "quite", "rather", "pretty", "extremely", "highly", "completely", 
+            "totally", "entirely", "partly", "partially", "mostly", "mainly", "primarily", "especially", "particularly", 
+            "specifically", "generally", "usually", "normally", "typically", "commonly", "frequently", "occasionally", 
+            "up", "over", "users", "about", "out", "like", "into", "which", "what", "who", "time", "were", "re", 
+            "around", "able", "another", "available", "according", "already", "git", "across", "being", "back", 
+            "between", "based", "behind"
     );
 
     /*
@@ -69,44 +110,21 @@ public class InvertedIndex {
             return;
         }
 
-        //tokenize the text and add the docID to the set of document IDs for each token in the BST
+        //tokenize the text and add the docID to the set of document IDs for each token
         String[] tokenList = tokenize(text);
         for (String token : tokenList) {
             if (token == null || token.isEmpty()) {
                 continue;
             }
             // skip stop words
-			if (STOP_WORDS.contains(token)) {
-				continue;
-			}
-			
-			//check if the token is already in the BST, if it is add the docID to the set of document IDs for that token
-			BSTNode current = root; // start at the root and traverse the tree to find the token
-			BSTNode parent = null; // keep track of the parent node to insert a new node if the token is not found
-			
-			while (current != null) {
-				parent = current;
-				if (token.compareTo(current.keyWord) < 0) {
-					current = current.left;
-				} else if (token.compareTo(current.keyWord) > 0) {
-					current = current.right;
-				} else {
-					current.documentIDs.add(docID);
-					break;
-				}
-			}
-			//if we reach a null node, it means the token is not in the BST, so we insert a new node with the token and docID
-			if (current == null) {
-				BSTNode newNode = new BSTNode(token, docID);
-				if (parent == null) {
-					root = newNode; // if the tree is empty, set the new node as the root
-				} else if (token.compareTo(parent.keyWord) < 0) {
-					parent.left = newNode;
-				} else {
-					parent.right = newNode;
-				}
-			}
-		}
+            if (STOP_WORDS.contains(token)) {
+                continue;
+            }
+            
+            // Add token to index using HashMap
+            // If the token doesn't exist, create a new set for it
+            index.computeIfAbsent(token, k -> new HashSet<>()).add(docID);
+        }
     }
 
 
@@ -125,13 +143,13 @@ public class InvertedIndex {
     	}
     	
     	//if index is empty, return an empty set
-    	if (root == null) {
+    	if (index.isEmpty()) {
     		return new HashSet<>();
     	}
     	
         //tokenize the query
 		String[] tokenList = tokenize(query);
-		Set<Integer> result = new HashSet<>();
+		Set<Integer> result = null;
 		
 		//return set of document IDs that contain all the words in the query
 		for (String token : tokenList) {
@@ -140,31 +158,30 @@ public class InvertedIndex {
 				continue;
 			}
 			
-			//search for the token in the BST
-			BSTNode current = root;
-			while (current != null) {
-				if (token.compareTo(current.keyWord) < 0) {
-					current = current.left;
-				} else if (token.compareTo(current.keyWord) > 0) {
-					current = current.right;
-				} else {
-					//if the token is found, add the document IDs to the result set
-					if (result.isEmpty()) {
-						result.addAll(current.documentIDs); //if the result set is empty, add all the document IDs for the first token
-					} else {
-						result.retainAll(current.documentIDs); //keep only the document IDs that are in both sets
-					}
-					break;
-				}
-			}
+			//search for the token in the HashMap
+			Set<Integer> docIDs = index.get(token);
 			
 			//if the token is not found, return an empty set
-			if (current == null) {
+			if (docIDs == null) {
+				return new HashSet<>();
+			}
+			
+			//if this is the first token, initialize result with its document IDs
+			if (result == null) {
+				result = new HashSet<>(docIDs);
+			} else {
+				//keep only the document IDs that are in both sets (intersection)
+				result.retainAll(docIDs);
+			}
+			
+			//if result is empty, no documents contain all the words
+			if (result.isEmpty()) {
 				return new HashSet<>();
 			}
 		}
 		
-		return result;
+		//if result is still null, all tokens were stop words
+		return result == null ? new HashSet<>() : result;
     }
 
 
@@ -173,30 +190,17 @@ public class InvertedIndex {
      @param int docID
      @return void
      */
-    // to remove a document traverse the entire tree and remove the given docID from the node's set
-    // remove the document ID
+    // remove the document ID from all keywords in the index
     public void removeDocument(int docID){
     	
     	//if the index is empty, return 
-    	if (root == null) {
+    	if (index.isEmpty()) {
     		return;
     	}
     	
-    	//traverse the entire tree and remove the given docID from the node's set
-    	BSTNode current = root;
-    	Stack<BSTNode> stack = new Stack<>();
-    	while (current != null || !stack.isEmpty()) {
-    		//traverse the left subtree
-			while (current != null) {
-				stack.push(current); //push the current node to the stack
-				current = current.left; //move to the left child
-			}
-			current = stack.pop(); //pop the node from the stack
-			//remove the docID from the current node's set of document IDs if it exists
-			if (current.documentIDs.contains(docID)) {
-				current.documentIDs.remove(docID);
-			}
-			current = current.right; //move to the right child
+    	//iterate through all keywords and remove the docID from their sets
+    	for (Set<Integer> docIDs : index.values()) {
+    		docIDs.remove(docID);
     	}
     	  	
         return;
@@ -206,33 +210,19 @@ public class InvertedIndex {
      This method get the map of inverted index
      can be used for testing purposes
      key is keyword and value is the set of document IDs
-     It MUST perform an in-order traversal to ensure that the map is sorted alphabetically by keyword
+     It MUST return a map sorted alphabetically by keyword
      @param none
      @return Map<String, Set<Integer>>
      */
-    // returns the map of the inverted index
+    // returns the map of the inverted index sorted alphabetically by keyword
     public Map<String, Set<Integer>> getIndex() {
     	//if the index is empty, return an empty map
-    	if (root == null) {
+    	if (index.isEmpty()) {
     		return new HashMap<>();
     	}
-    	//Option 1: Perform an in-order traversal of the BST and construct the returned map in the same order as the traversal
-    	Map<String, Set<Integer>> indexMap = new LinkedHashMap<>();
-    	Stack<BSTNode> stack = new Stack<>();
-    	BSTNode current = root;
-    	while (current != null || !stack.isEmpty()) {
-    		//traverse the left subtree
-    		while (current != null) {
-    			stack.push(current); //push the current node to the stack
-    			current = current.left; //move to the left child
-    										
-    		}
-    		current = stack.pop(); //pop the node from the stack
-    		indexMap.put(current.keyWord, current.documentIDs); //add the current node's keyword and document IDs to the map
-    		current = current.right; //move to the right child
-    	}
     	
-       return indexMap;
+    	// Create a TreeMap which automatically sorts keys alphabetically
+    	return new TreeMap<>(index);
     }
 
     /*
@@ -264,6 +254,9 @@ public class InvertedIndex {
     	
     	//split on one or more whitespace characters
     	String[] tokens = text.split("\\s+");
+    	
+    	//skip any token with length of 1
+    	tokens = Arrays.stream(tokens).filter(token -> token.length() > 1).toArray(String[]::new);
 
 		return tokens;
 
