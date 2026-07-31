@@ -246,7 +246,7 @@ public class InvertedIndex {
 	 * @param text the text to tokenize
 	 * @return a list of tokens
      */
-    private String[] tokenize(String text) {
+    static String[] tokenize(String text) {
     	
     	// tokenize ensures the text is lowercase all non-alphanumeric (except spaces and hyphens)
     	// characters are replaced with a space and then split on whitespace
