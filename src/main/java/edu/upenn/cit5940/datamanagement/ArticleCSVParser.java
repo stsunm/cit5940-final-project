@@ -16,12 +16,15 @@ package edu.upenn.cit5940.datamanagement;
 import java.io.*;
 import java.util.*;
 
+
 import edu.upenn.cit5940.common.dto.Article;
+import edu.upenn.cit5940.logging.Logger;
 
 public class ArticleCSVParser implements DataParser {
     private final CharacterReader reader;
     private int iLine = 1;
     private int iRecord = 1;
+    Logger logger = Logger.getInstance();
 
     public ArticleCSVParser(CharacterReader reader) {
         this.reader = reader;
@@ -76,8 +79,10 @@ public class ArticleCSVParser implements DataParser {
                             hasDataOnLine = false;
                         } else if (next == -1) {
                             //CR at EOF is a formatting violation, throw an exception
+                        	logger.error("CSVFormatException: No CR at EOF at Line " + iLine + ", Record " + iRecord);
                             throw new CSVFormatException("No CR at EOF", iLine, -1, iRecord, -1);
                         } else { //CR should be followed by LF
+                        	logger.error("CSVFormatException: Invalid character following a CR at Line " + iLine + ", Record " + iRecord);
                             throw new CSVFormatException("Invalid character following a CR", iLine, -1, iRecord, -1);
                         }
                     } else if (ch == ',') { //Handle comma character
@@ -115,8 +120,10 @@ public class ArticleCSVParser implements DataParser {
                             hasDataOnLine = false;
                             state = STATES.START_FIELD;
                         } else if (next == -1) {
+                        	logger.error("CSVFormatException: No CR at EOF at Line " + iLine + ", Record " + iRecord);
                             throw new CSVFormatException("No CR at EOF", iLine, -1, iRecord, -1);
                         } else {
+                        	logger.error("CSVFormatException: Invalid character following a CR at Line " + iLine + ", Record " + iRecord);
                             throw new CSVFormatException("Invalid character following a CR", iLine, -1, iRecord, -1);
                         }
                     } else if (ch == ',') {
@@ -124,6 +131,7 @@ public class ArticleCSVParser implements DataParser {
                         currentField.setLength(0);
                         state = STATES.START_FIELD;
                     } else if (ch == '"') {
+                    	logger.error("CSVFormatException: Unexpected quote inside unquoted field at Line " + iLine + ", Record " + iRecord);
                         throw new CSVFormatException("Unexpected quote inside unquoted field", iLine, -1, iRecord, -1);
                     } else {
                         currentField.append(ch);
@@ -167,11 +175,14 @@ public class ArticleCSVParser implements DataParser {
                             hasDataOnLine = false;
                             state = STATES.START_FIELD;
                         } else if (next == -1) {
+                        	logger.error("CSVFormatException: No CR at EOF at Line " + iLine + ", Record " + iRecord);
                             throw new CSVFormatException("No CR at EOF", iLine, -1, iRecord, -1);
                         } else {
+                        	logger.error("CSVFormatException: Invalid character following a CR at Line " + iLine + ", Record " + iRecord);
                             throw new CSVFormatException("Invalid character following a CR", iLine, -1, iRecord, -1);
                         }
                     } else {
+                    	logger.error("CSVFormatException: Unexpected character after closing quote at Line " + iLine + ", Record " + iRecord);
                         throw new CSVFormatException("Unexpected character after closing quote", iLine, -1, iRecord, -1);
                     }
                     break;
@@ -179,6 +190,7 @@ public class ArticleCSVParser implements DataParser {
         }
 
         if (state == STATES.IN_QUOTED_FIELD) {
+        	logger.error("CSVFormatException: Unclosed quoted field at end of file at Line " + iLine + ", Record " + iRecord);
             throw new CSVFormatException("Unclosed quoted field at end of file", iLine, -1, iRecord, -1);
         }
         
@@ -192,6 +204,7 @@ public class ArticleCSVParser implements DataParser {
             processRecord(currentRecord, articles);
         }
         
+        logger.info("Successfully parsed " + articles.size() + " CSV articles.");
         return articles;
     }
 
@@ -212,10 +225,12 @@ public class ArticleCSVParser implements DataParser {
         }
         
         if (rec.size() != 16) {
+        	logger.error("IllegalArgumentException: Incorrect number of fields. Expected exactly 16, found: " + rec.size() + " at Line " + iLine + ", Record " + iRecord);
             throw new IllegalArgumentException("Incorrect number of fields. Expected exactly 16, found: " + rec.size());
         }
         
         if (rec.get(0) == null || rec.get(0).trim().isEmpty()) {
+        	logger.error("IllegalArgumentException: The first field (uri) cannot be empty at Line " + iLine + ", Record " + iRecord);
             throw new IllegalArgumentException("The first field (uri) cannot be empty.");
         }
         
