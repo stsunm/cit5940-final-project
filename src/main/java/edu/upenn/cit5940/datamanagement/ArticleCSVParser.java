@@ -247,8 +247,5 @@ public class ArticleCSVParser implements DataParser {
                     + ", Record " + iRecord + ": " + e.getMessage());
         }
 
-        
-        Article article = new Article(rec);
-        articles.put(article.getUri(), article);
     }
 }

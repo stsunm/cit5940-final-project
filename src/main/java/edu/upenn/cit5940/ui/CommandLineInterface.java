@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -109,6 +110,7 @@ public class CommandLineInterface {
         while (running) {
             try {
                 printMainMenu();
+                
                 // readMenuChoice loops internally until it gets a valid 1-4 —
                 // by the time it returns, `choice` is guaranteed valid, so the
                 // switch below never needs a "handle bad input" branch.
@@ -131,6 +133,9 @@ public class CommandLineInterface {
                         // unreachable: readMenuChoice already enforces the range
                         break;
                 }
+            } catch (NoSuchElementException e) {
+                //input stream exhausted
+                running = false;
             } catch (Exception e) {
                 // Guiding principle: never crash. Catching Exception here is a
                 // last line of defense — if anything unexpected slips past all
@@ -228,7 +233,12 @@ public class CommandLineInterface {
     private void waitForEnter() {
         out.println();
         out.print("Press ENTER to return to the Interactive Mode menu...");
-        in.nextLine();
+        try {
+            in.nextLine();
+        } catch (NoSuchElementException e) {
+            //input exhausted
+            throw e;
+        }
         out.println();
     }
 
