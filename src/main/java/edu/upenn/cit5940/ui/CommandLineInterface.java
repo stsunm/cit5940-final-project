@@ -456,6 +456,7 @@ public class CommandLineInterface {
         // they both funnel through this one shared method.
         logger.info("Search query: " + String.join(" ", keywords));
         List<String> titles = searchService.search(keywords);
+        out.println("Results:");
         printTitlesOrNone(titles);
     }
 

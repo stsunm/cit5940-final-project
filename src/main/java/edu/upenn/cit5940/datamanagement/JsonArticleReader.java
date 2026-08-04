@@ -28,19 +28,12 @@ public class JsonArticleReader implements DataParser {
         JsonNode rootNode = mapper.readTree(this.reader);
 
         if (rootNode != null && rootNode.isArray()) {
-        	int entryCount = 0;
-        	
-            for (JsonNode node : rootNode) {
-            	entryCount++;
-            	//skip empty nodes
-            	if (node == null || node.isEmpty()) {
-                    continue;
-                }
+            int entryCount = 0;
 
-                //ensure exactly 16 fields exist
-                if (node.size() != 16) {
-                    logger.error("Skipping malformed JSON entry " + entryCount
-                            + ": invalid field count " + node.size() + " (Expected 16)");
+            for (JsonNode node : rootNode) {
+                entryCount++;
+                //skip empty nodes
+                if (node == null || node.isEmpty()) {
                     continue;
                 }
 
@@ -59,9 +52,9 @@ public class JsonArticleReader implements DataParser {
                 }
 
                 //extract other fields
-                String date = node.has("date") ? node.get("date").asText() : "";
-                String title = node.has("title") ? node.get("title").asText() : "";
-                String body = node.has("body") ? node.get("body").asText() : "";
+                String date = node.has("date") && !node.get("date").isNull() ? node.get("date").asText() : "";
+                String title = node.has("title") && !node.get("title").isNull() ? node.get("title").asText() : "";
+                String body = node.has("body") && !node.get("body").isNull() ? node.get("body").asText() : "";
 
                 if (title == null || title.isBlank()) {
                     logger.error("Skipping malformed JSON entry " + entryCount + ": missing or empty title.");
@@ -73,8 +66,8 @@ public class JsonArticleReader implements DataParser {
             }
         }
         logger.info("Successfully parsed " + articles.size() + " JSON articles.");
-        
+
         return articles;
-    }	
+    }
 
 }
