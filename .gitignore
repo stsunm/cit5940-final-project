@@ -37,3 +37,8 @@ build/
 
 ### Custom ###
 .mvn/
+
+# Large data files
+articles.csv
+articles.json
+tech_news_search.log
