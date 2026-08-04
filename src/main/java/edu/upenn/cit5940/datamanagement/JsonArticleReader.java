@@ -37,14 +37,6 @@ public class JsonArticleReader implements DataParser {
                     continue;
                 }
 
-                //ensure exactly 16 fields exist
-                if (node.size() != 16) {
-                	logger.error("JSON entry " + entryCount + " has invalid field count: " + node.size() + " (Expected 16)");
-                    throw new IllegalArgumentException(
-                        "Incorrect number of fields. Expected exactly 16, found: " + node.size()
-                    );
-                }
-
                 //extract URI
                 String uri = node.has("uri") && !node.get("uri").isNull() ? node.get("uri").asText().trim() : "";
 
@@ -53,10 +45,10 @@ public class JsonArticleReader implements DataParser {
                     continue;
                 }
 
-                //ensure URI is not empty
+                //skip records with empty or missing URI (essential field)
                 if (uri.isEmpty()) {
-                	logger.error("JSON entry " + entryCount + " contains an empty URI.");
-                    throw new IllegalArgumentException("uri cannot be empty.");
+                	logger.error("Skipping JSON entry " + entryCount + ": missing or empty URI (essential field).");
+                    continue;
                 }            	
             	
                 //extract other fields
@@ -64,10 +56,18 @@ public class JsonArticleReader implements DataParser {
                 String title = node.has("title") ? node.get("title").asText() : "";
                 String body = node.has("body") ? node.get("body").asText() : "";
 
-                Article article = new Article(uri, date, title, body);
+                //skip records with empty or missing title (essential field)
+                if (title == null || title.trim().isEmpty()) {
+                    logger.error("Skipping JSON entry " + entryCount + " (URI: " + uri + "): missing or empty title (essential field).");
+                    continue;
+                }
 
-                if (!uri.isEmpty()) {
+                try {
+                    Article article = new Article(uri, date, title, body);
                     articles.put(uri, article);
+                } catch (IllegalArgumentException e) {
+                    // If Article constructor throws exception due to validation, skip the record
+                    logger.error("Skipping JSON entry " + entryCount + " (URI: " + uri + "): " + e.getMessage());
                 }
             }
         }

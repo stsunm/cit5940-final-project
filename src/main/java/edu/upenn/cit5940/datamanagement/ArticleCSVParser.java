@@ -224,17 +224,30 @@ public class ArticleCSVParser implements DataParser {
             return; // Skip header
         }
         
+        // Skip records with incorrect number of fields (malformed)
         if (rec.size() != 16) {
-        	logger.error("IllegalArgumentException: Incorrect number of fields. Expected exactly 16, found: " + rec.size() + " at Line " + iLine + ", Record " + iRecord);
-            throw new IllegalArgumentException("Incorrect number of fields. Expected exactly 16, found: " + rec.size());
+        	logger.error("Skipping CSV record " + iRecord + " at line " + iLine + ": Incorrect number of fields. Expected exactly 16, found: " + rec.size() + " (malformed record).");
+            return;
         }
         
+        // Skip records with empty URI (missing essential field)
         if (rec.get(0) == null || rec.get(0).trim().isEmpty()) {
-        	logger.error("IllegalArgumentException: The first field (uri) cannot be empty at Line " + iLine + ", Record " + iRecord);
-            throw new IllegalArgumentException("The first field (uri) cannot be empty.");
+        	logger.error("Skipping CSV record " + iRecord + " at line " + iLine + ": missing or empty URI (essential field).");
+            return;
         }
         
-        Article article = new Article(rec);
-        articles.put(article.getUri(), article);
+        // Skip records with empty title (missing essential field - title is at index 4)
+        if (rec.size() > 4 && (rec.get(4) == null || rec.get(4).trim().isEmpty())) {
+        	logger.error("Skipping CSV record " + iRecord + " at line " + iLine + ": missing or empty title (essential field).");
+            return;
+        }
+        
+        try {
+            Article article = new Article(rec);
+            articles.put(article.getUri(), article);
+        } catch (IllegalArgumentException e) {
+            // If Article constructor throws exception due to validation, skip the record
+            logger.error("Skipping CSV record " + iRecord + " at line " + iLine + ": " + e.getMessage());
+        }
     }
 }
