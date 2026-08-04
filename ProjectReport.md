@@ -52,17 +52,19 @@ Dates are `YYYY-MM-DD`, periods are `YYYY-MM`.
 
 ### Architecture
 
-The app is split into four tiers so each piece has one job:
+The app implemented the n-tier architecture, split into five tiers so each piece has one job:
 
-- **Presentation** (`ui.CommandLineInterface`) — menu, prompts, input
+- **Presentation** (`ui.CommandLineInterface`) — Responsible for all user interaction: menu, prompts, input
   validation.
-- **Logic** (`processor.*`) — search, autocomplete, topics, trends, date
-  browsing. Owns the core data structures.
-- **Data management** (`datamanagement.*`) — reads CSV/JSON into
+- **Logic** (`processor.*`) — Contains the core business logic: search, autocomplete, topics, trends, date
+  browsing.
+- **Data management** (`datamanagement.*`) — Manages the in-memory data structures and data parsing, reads CSV/JSON into
   `Article` objects.
-- **Shared model** — `Article` (uri, date, title, body).
+- **Shared model** — A shared component containing `Article` (uri, date, title, body) used bby all tiers.
 
-A single `Logger` handles logging across all tiers.
+- **Logger package** — A single `Logger` handles logging across all tiers.
+
+`Main` initializes dependencies and passes them down
 
 ### Data Structures
 
@@ -83,10 +85,29 @@ A single `Logger` handles logging across all tiers.
 
 ### Design Patterns
 
-**Singleton** — `Logger.getInstance()` ensures one shared log file.
+**Singleton** — `Logger.getInstance()` ensures a single, globally accessible logging instance across all tiers without creating multiple file writers or overwriting log outputs.
+
+```java
+public class Logger {
+    private static Logger instance;
+    private PrintWriter writer;
+
+    private Logger(String filePath) {
+        // Private constructor to enforce Singleton
+    }
+
+    public static synchronized Logger getInstance() {
+        if (instance == null) {
+            instance = new Logger(DEFAULT_LOG_FILE);
+        }
+        return instance;
+    }
+}
+```
 
 **Strategy** — CSV and JSON parsers both implement `DataParser`, so
 `Main` just picks one by file extension:
+
 ```java
 DataParser parser = dataFilePath.endsWith(".json")
         ? new JsonArticleReader(reader)
@@ -98,6 +119,7 @@ through its constructor instead of building them itself, keeping the UI
 layer decoupled from how search/indexing actually works.
 
 **Command Dispatch** — Command Mode routes on the first input token:
+
 ```java
 switch (command) {
     case "search": doSearch(tokenize(rest)); break;

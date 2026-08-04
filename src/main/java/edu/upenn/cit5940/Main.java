@@ -20,6 +20,7 @@ import java.util.TreeMap;
 
 public class Main {
 
+	//initialize default paths for data and log files
     private static final String DEFAULT_DATA_PATH = "articles.csv";
     private static final String DEFAULT_LOG_PATH = "tech_news_search.log";
 
@@ -44,7 +45,8 @@ public class Main {
         }
 
         System.out.println("Loading articles from: " + dataFilePath);
-
+        
+        //load articles based on file extension
         try {
             Map<String, Article> articles;
             String lowerPath = dataFilePath.toLowerCase();
@@ -60,12 +62,13 @@ public class Main {
                     DataParser parser = new ArticleCSVParser(characterReader);
                     articles = parser.readAllArticles();
                 }
+            //exit gracefully if unsupported file format is provided
             } else {
                 System.out.println("Error: Unsupported data file format. Please provide a .csv or .json file.");
                 logger.error("Unsupported data file format: " + dataFilePath);
                 return;
             }
-
+            //exit gracefully if no valid articles were loaded
             if (articles == null || articles.isEmpty()) {
                 System.out.println("Error: No valid articles loaded from " + dataFilePath);
                 logger.error("Fatal error: Zero valid articles parsed from " + dataFilePath);
@@ -100,13 +103,15 @@ public class Main {
                     }
                 }
             }
-
+            
+            //initialize services for each layer of the architecture
             SearchService searchService = new SearchService(invertedIndex, articlesByDocId);
             AutocompleteService autocompleteService = new AutocompleteService(autocompleteTrie);
             ArticleAnalyticsService analyticsService = new ArticleAnalyticsService(articles, periodWordCounts);
             TopicTrendService trendService = new TopicTrendService(periodWordCounts);
             ArticleService articleService = new ArticleService(articles, dateIndex);
 
+            //initialize CLI for user interaction
             CommandLineInterface cli = new CommandLineInterface(
                     searchService,
                     autocompleteService,
@@ -118,7 +123,7 @@ public class Main {
             logger.info("Entering interactive CLI session...");
             cli.run();
             
-
+         //log application exit
         } catch (Exception e) {
             System.out.println("Error loading application: " + e.getMessage());
             logger.error("Fatal exception during execution: " + e.getMessage());
