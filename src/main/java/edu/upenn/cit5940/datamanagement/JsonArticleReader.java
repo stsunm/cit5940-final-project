@@ -68,6 +68,18 @@ public class JsonArticleReader implements DataParser {
                     continue;
                 }
 
+                // Check for empty date field
+                if (date == null || date.isBlank()) {
+                    logger.error("Skipping malformed JSON entry " + entryCount + ": missing or empty date.");
+                    continue;
+                }
+
+                // Check for empty body field
+                if (body == null || body.isBlank()) {
+                    logger.error("Skipping malformed JSON entry " + entryCount + ": missing or empty body.");
+                    continue;
+                }
+
                 Article article = new Article(uri, date, title, body);
                 articles.put(uri, article);
             }

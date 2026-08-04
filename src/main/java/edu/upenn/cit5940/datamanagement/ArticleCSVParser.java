@@ -233,8 +233,30 @@ public class ArticleCSVParser implements DataParser {
             return;
         }
 
+        // Check for empty uri (first field)
         if (rec.get(0) == null || rec.get(0).trim().isEmpty()) {
             logger.error("Skipping malformed CSV record: The first field (uri) cannot be empty at Line "
+                    + iLine + ", Record " + iRecord);
+            return;
+        }
+
+        // Check for empty date (second field)
+        if (rec.get(1) == null || rec.get(1).trim().isEmpty()) {
+            logger.error("Skipping malformed CSV record: The second field (date) cannot be empty at Line "
+                    + iLine + ", Record " + iRecord);
+            return;
+        }
+
+        // Check for empty title (third field)
+        if (rec.get(2) == null || rec.get(2).trim().isEmpty()) {
+            logger.error("Skipping malformed CSV record: The third field (title) cannot be empty at Line "
+                    + iLine + ", Record " + iRecord);
+            return;
+        }
+
+        // Check for empty body (fourth field)
+        if (rec.get(3) == null || rec.get(3).trim().isEmpty()) {
+            logger.error("Skipping malformed CSV record: The fourth field (body) cannot be empty at Line "
                     + iLine + ", Record " + iRecord);
             return;
         }
