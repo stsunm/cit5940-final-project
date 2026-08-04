@@ -223,16 +223,30 @@ public class ArticleCSVParser implements DataParser {
         if (rec.get(0).equalsIgnoreCase("uri")) {
             return; // Skip header
         }
-        
+
+        // The spec says malformed or missing records should be:
+        //skipped, logged as warning, and continue processing
+
         if (rec.size() != 16) {
-        	logger.error("IllegalArgumentException: Incorrect number of fields. Expected exactly 16, found: " + rec.size() + " at Line " + iLine + ", Record " + iRecord);
-            throw new IllegalArgumentException("Incorrect number of fields. Expected exactly 16, found: " + rec.size());
+            logger.error("Skipping malformed CSV record: Incorrect number of fields. Expected exactly 16, found: "
+                    + rec.size() + " at Line " + iLine + ", Record " + iRecord);
+            return;
         }
-        
+
         if (rec.get(0) == null || rec.get(0).trim().isEmpty()) {
-        	logger.error("IllegalArgumentException: The first field (uri) cannot be empty at Line " + iLine + ", Record " + iRecord);
-            throw new IllegalArgumentException("The first field (uri) cannot be empty.");
+            logger.error("Skipping malformed CSV record: The first field (uri) cannot be empty at Line "
+                    + iLine + ", Record " + iRecord);
+            return;
         }
+
+        try {
+            Article article = new Article(rec);
+            articles.put(article.getUri(), article);
+        } catch (IllegalArgumentException e) {
+            logger.error("Skipping malformed CSV record at Line " + iLine
+                    + ", Record " + iRecord + ": " + e.getMessage());
+        }
+
         
         Article article = new Article(rec);
         articles.put(article.getUri(), article);

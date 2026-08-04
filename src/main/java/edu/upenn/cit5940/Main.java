@@ -47,18 +47,23 @@ public class Main {
 
         try {
             Map<String, Article> articles;
+            String lowerPath = dataFilePath.toLowerCase();
 
             //instantiate parser based on file extension
-            if (dataFilePath.toLowerCase().endsWith(".json")) {
+            if (lowerPath.endsWith(".json")) {
                 try (BufferedReader reader = Files.newBufferedReader(Paths.get(dataFilePath))) {
                     DataParser parser = new JsonArticleReader(reader);
                     articles = parser.readAllArticles();
                 }
-            } else {
+            } else if (lowerPath.endsWith(".csv")) {
                 try (CharacterReader characterReader = new CharacterReader(dataFilePath)) {
                     DataParser parser = new ArticleCSVParser(characterReader);
                     articles = parser.readAllArticles();
                 }
+            } else {
+                System.out.println("Error: Unsupported data file format. Please provide a .csv or .json file.");
+                logger.error("Unsupported data file format: " + dataFilePath);
+                return;
             }
 
             if (articles == null || articles.isEmpty()) {
@@ -90,7 +95,7 @@ public class Main {
                         .replaceAll("[^a-z0-9\\s-]", " ");
 
                 for (String word : cleanedTitle.split("\\s+")) {
-                    if (!word.isEmpty()) {
+                    if (!word.isEmpty() && word.length() > 1) {
                         autocompleteTrie.insertWord(word);
                     }
                 }

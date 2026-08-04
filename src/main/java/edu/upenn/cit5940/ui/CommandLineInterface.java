@@ -1,5 +1,6 @@
 package edu.upenn.cit5940.ui;
 
+import edu.upenn.cit5940.logging.Logger;
 import edu.upenn.cit5940.processor.ArticleAnalyticsService;
 import edu.upenn.cit5940.processor.ArticleService;
 import edu.upenn.cit5940.processor.AutocompleteService;
@@ -40,6 +41,16 @@ public class CommandLineInterface {
     private final ArticleAnalyticsService analyticsService;
     private final TopicTrendService trendService;
     private final ArticleService articleService;
+    // Logger is a true Singleton (per the spec's suggested design pattern),
+    // so it's accessed via Logger.getInstance() rather than constructor
+    // injection — that's the whole point of the pattern: any class can reach
+    // the one shared instance without it being threaded through every layer.
+    // IMPORTANT: Main must call Logger.getInstance(logFilePath) BEFORE
+    // constructing this class, so the singleton is created with the correct
+    // configured log file. This getInstance() call (no-arg) just returns
+    // that already-created instance — it won't re-create it with a
+    // different path.
+    private final Logger logger;
 
     public CommandLineInterface(Scanner in, PrintStream out,
                                 SearchService searchService,
@@ -54,6 +65,7 @@ public class CommandLineInterface {
         this.analyticsService = analyticsService;
         this.trendService = trendService;
         this.articleService = articleService;
+        this.logger = Logger.getInstance();
     }
 
     /** Convenience constructor wired to System.in / System.out. */
@@ -124,6 +136,7 @@ public class CommandLineInterface {
                 // last line of defense — if anything unexpected slips past all
                 // the specific validation elsewhere, we report it and loop back
                 // to the Main Menu instead of the whole program dying.
+                logger.error("Unexpected error in main loop: " + e.getMessage());
                 out.println("An unexpected error occurred: " + e.getMessage());
             }
         }
@@ -305,6 +318,7 @@ public class CommandLineInterface {
             } catch (Exception e) {
                 // Same "never crash" principle as run(): one bad command
                 // shouldn't kill Command Mode, just report and keep prompting.
+                logger.error("Unexpected error processing command '" + trimmed + "': " + e.getMessage());
                 out.println("An error occurred while processing that command: " + e.getMessage());
             }
         }
@@ -316,6 +330,11 @@ public class CommandLineInterface {
      * @return {@code true} to stay in Command Mode, {@code false} to return to the Main Menu
      */
     private boolean dispatchCommand(String line) {
+        // Spec requirement: log every user command. Logging the raw line
+        // (before parsing) captures exactly what the user typed, which is
+        // more useful for debugging than a reconstructed/normalized version.
+        logger.info("User command: " + line);
+
         // split("\\s+", 2) means: split on whitespace, but stop after the
         // FIRST split. So "search ai ethics" -> ["search", "ai ethics"] —
         // the command name is isolated, but multi-word arguments stay intact
@@ -421,6 +440,11 @@ public class CommandLineInterface {
     // =====================================================================
 
     private void doSearch(List<String> keywords) {
+        // Spec calls out "search queries" as their own logged category,
+        // separate from general user commands — log it here so both
+        // Interactive Mode and Command Mode searches get captured, since
+        // they both funnel through this one shared method.
+        logger.info("Search query: " + String.join(" ", keywords));
         List<String> titles = searchService.search(keywords);
         printTitlesOrNone(titles);
     }
@@ -561,6 +585,7 @@ public class CommandLineInterface {
     private void printExitMessage() {
         out.println("Thank you for using the Tech News Search Engine!");
         out.println("Goodbye!");
+        logger.info("Application exiting");
     }
 
     // =====================================================================

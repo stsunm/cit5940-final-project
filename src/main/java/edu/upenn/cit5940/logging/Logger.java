@@ -20,8 +20,7 @@ public class Logger {
         try {
             this.writer = new PrintWriter(new FileWriter(filePath, true), true);
         } catch (IOException e) {
-            System.err.println("Failed to initialize Logger with file: " + filePath);
-            e.printStackTrace();
+            this.writer = null;
         }
     }
 
