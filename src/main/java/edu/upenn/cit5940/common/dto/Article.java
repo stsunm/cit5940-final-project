@@ -29,6 +29,9 @@ public class Article {
         if (uri == null || uri.isBlank()) {
             throw new IllegalArgumentException("URI cannot be null or empty.");
         }
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("Title cannot be null or empty.");
+        }
     }
     
     public Article(String uri, String date, String title, String body) {
@@ -39,6 +42,9 @@ public class Article {
         
         if (uri == null || uri.isBlank()) {
             throw new IllegalArgumentException("URI cannot be null or empty.");
+        }
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("Title cannot be null or empty.");
         }
     }
 
