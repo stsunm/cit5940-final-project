@@ -10,6 +10,10 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
 
+/***
+ * ArticleRepository is responsible for loading and storing articles from a dataset file (JSON or CSV).
+ * It provides methods to access the loaded articles and their count.
+ */
 public class ArticleRepository {
 
     private final Map<String, Article> articles;
@@ -36,7 +40,8 @@ public class ArticleRepository {
 
             loadedArticles = parser.readAllArticles();
         }
-
+        
+        // Handle the case where the dataset is empty or contains zero valid articles
         if (loadedArticles == null || loadedArticles.isEmpty()) {
             logger.error("Dataset is empty or contains zero valid articles.");
             this.articles = Collections.emptyMap();

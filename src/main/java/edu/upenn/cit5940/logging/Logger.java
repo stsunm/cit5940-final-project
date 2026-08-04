@@ -7,7 +7,10 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-//for appending formatted log entries to the output log file
+/***
+ * Logger class for logging messages to a file.
+ * Implements the Singleton pattern to ensure only one instance exists.
+ */
 public class Logger {
 
 	//Singleton instance
@@ -49,6 +52,7 @@ public class Logger {
         }
     }
     
+    //Convenience methods for different log levels
     public void info(String message) {
         log("INFO", message);
     }
